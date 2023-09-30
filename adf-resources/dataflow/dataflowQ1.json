@@ -1,0 +1,161 @@
+{
+	"name": "dataflowQ1",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SalesPersonCSV",
+						"type": "DatasetReference"
+					},
+					"name": "SalesPersonCSV"
+				},
+				{
+					"dataset": {
+						"referenceName": "SalesTerritoryCSV",
+						"type": "DatasetReference"
+					},
+					"name": "SalesTerritoryCSV"
+				},
+				{
+					"dataset": {
+						"referenceName": "SalesOrderHeaderCSV",
+						"type": "DatasetReference"
+					},
+					"name": "SalesOrderHeader"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "SalesPersonPerformance",
+						"type": "DatasetReference"
+					},
+					"name": "sinkQuery1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "LookupPersonTerritory"
+				},
+				{
+					"name": "LookupPersonTerritorySales"
+				},
+				{
+					"name": "filterYearOnlineFlag"
+				},
+				{
+					"name": "aggregate1"
+				},
+				{
+					"name": "PctSalesContributionToTerritory"
+				},
+				{
+					"name": "selectColumns"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          BusinessEntityID as short,",
+				"          TerritoryID as short,",
+				"          SalesQuota as double,",
+				"          Bonus as double,",
+				"          CommissionPct as double,",
+				"          SalesYTD as double,",
+				"          SalesLastYear as double,",
+				"          rowguid as string,",
+				"          ModifiedDate as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> SalesPersonCSV",
+				"source(output(",
+				"          TerritoryID as short,",
+				"          Name as string,",
+				"          CountryRegionCode as string,",
+				"          Group as string,",
+				"          SalesYTD as double,",
+				"          SalesLastYear as double,",
+				"          CostYTD as double,",
+				"          CostLastYear as double,",
+				"          rowguid as string,",
+				"          ModifiedDate as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> SalesTerritoryCSV",
+				"source(output(",
+				"          SalesOrderID as integer,",
+				"          RevisionNumber as short,",
+				"          OrderDate as date,",
+				"          DueDate as string,",
+				"          ShipDate as string,",
+				"          Status as short,",
+				"          OnlineOrderFlag as boolean,",
+				"          SalesOrderNumber as string,",
+				"          PurchaseOrderNumber as string,",
+				"          AccountNumber as string,",
+				"          CustomerID as short,",
+				"          SalesPersonID as short,",
+				"          TerritoryID as short,",
+				"          BillToAddressID as short,",
+				"          ShipToAddressID as short,",
+				"          ShipMethodID as short,",
+				"          CreditCardID as short,",
+				"          CreditCardApprovalCode as string,",
+				"          CurrencyRateID as short,",
+				"          SubTotal as double,",
+				"          TaxAmt as double,",
+				"          Freight as double,",
+				"          TotalDue as double,",
+				"          Comment as string,",
+				"          rowguid as string,",
+				"          ModifiedDate as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> SalesOrderHeader",
+				"SalesPersonCSV, SalesTerritoryCSV lookup(SalesPersonCSV@TerritoryID == SalesTerritoryCSV@TerritoryID,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> LookupPersonTerritory",
+				"SalesOrderHeader, PctSalesContributionToTerritory lookup(SalesPersonID == BusinessEntityID,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> LookupPersonTerritorySales",
+				"LookupPersonTerritorySales filter(year(OrderDate)==2013 && OnlineOrderFlag==toBoolean('0')) ~> filterYearOnlineFlag",
+				"filterYearOnlineFlag aggregate(groupBy(BusinessEntityID,",
+				"          Name,",
+				"          Group,",
+				"          SalesQuota,",
+				"          SalesPersonCSV@SalesYTD,",
+				"          SalesPersonCSV@SalesLastYear,",
+				"          PctSalesContributionToTerritory),",
+				"     NumberOfOrdersLastYear = count(SalesOrderID),",
+				"          AverageOrderTotalLastYear = avg(TotalDue)) ~> aggregate1",
+				"LookupPersonTerritory derive(PctSalesContributionToTerritory = SalesPersonCSV@SalesLastYear/SalesTerritoryCSV@SalesLastYear) ~> PctSalesContributionToTerritory",
+				"aggregate1 select(mapColumn(",
+				"          BusinessEntityID,",
+				"          Name,",
+				"          Group,",
+				"          SalesQuota,",
+				"          SalesYTD,",
+				"          SalesLastYear,",
+				"          PctSalesContributionToTerritory,",
+				"          NumberOfOrdersLastYear,",
+				"          AverageOrderTotalLastYear",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColumns",
+				"selectColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sinkQuery1"
+			]
+		}
+	}
+}
