@@ -1,0 +1,21 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "advworksdatafactory1"
+		},
+		"SQLServerOnPrem_connectionString": {
+			"value": "Integrated Security=False;Data Source=AKBAR-ATTAMIMI;Initial Catalog=AdventureWorks2022;User ID=sa"
+		},
+		"AzureDataLakeStorageGen2_properties_typeProperties_url": {
+			"value": "https://advworkdatalakegen2.dfs.core.windows.net/"
+		},
+		"AzureKeyVault_properties_typeProperties_baseUrl": {
+			"value": "https://az-kv-advworks.vault.azure.net/"
+		},
+		"SHIR_properties_typeProperties_linkedInfo_resourceId": {
+			"value": "/subscriptions/af70eea1-a52b-4f7b-aa37-fd9a33aa5136/resourcegroups/azure-tutorial-de/providers/Microsoft.DataFactory/factories/adftutorialde/integrationruntimes/SHIR"
+		}
+	}
+}
