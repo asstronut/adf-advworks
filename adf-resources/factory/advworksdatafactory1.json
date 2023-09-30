@@ -1,0 +1,9 @@
+{
+	"name": "advworksdatafactory1",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "2d9a61b2-bec5-4551-9e1b-fdef0fc41c3c",
+		"tenantId": "c8c4d43b-4769-43af-bd5b-f3a4d891c7bf"
+	}
+}
