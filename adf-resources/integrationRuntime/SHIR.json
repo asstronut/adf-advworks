@@ -1,0 +1,12 @@
+{
+	"name": "SHIR",
+	"properties": {
+		"type": "SelfHosted",
+		"typeProperties": {
+			"linkedInfo": {
+				"resourceId": "/subscriptions/af70eea1-a52b-4f7b-aa37-fd9a33aa5136/resourcegroups/azure-tutorial-de/providers/Microsoft.DataFactory/factories/adftutorialde/integrationruntimes/SHIR",
+				"authorizationType": "Rbac"
+			}
+		}
+	}
+}
