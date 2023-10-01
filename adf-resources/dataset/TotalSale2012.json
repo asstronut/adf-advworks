@@ -1,0 +1,22 @@
+{
+	"name": "TotalSale2012",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorageGen2",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileSystem": "transformed"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	}
+}
