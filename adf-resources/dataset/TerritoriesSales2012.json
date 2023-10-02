@@ -1,5 +1,5 @@
 {
-	"name": "SalesPersonPerformance",
+	"name": "TerritoriesSales2012",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "AzureDataLakeStorageGen2",
@@ -10,7 +10,6 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"fileName": "SalesPersonPerformance.csv",
 				"fileSystem": "transformed"
 			},
 			"columnDelimiter": ",",

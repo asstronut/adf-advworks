@@ -1,0 +1,151 @@
+{
+	"name": "top5products",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SalesOrderDetailCSV",
+						"type": "DatasetReference"
+					},
+					"name": "SalesOrderDetailCSV"
+				},
+				{
+					"dataset": {
+						"referenceName": "SalesOrderHeaderCSV",
+						"type": "DatasetReference"
+					},
+					"name": "SalesOrderHeaderCSV"
+				},
+				{
+					"dataset": {
+						"referenceName": "SalesTerritoryCSV",
+						"type": "DatasetReference"
+					},
+					"name": "SalesTerritoryCSV"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Top5ProductsSink",
+						"type": "DatasetReference"
+					},
+					"name": "Top5ProductsSink"
+				}
+			],
+			"transformations": [
+				{
+					"name": "SalesHeaderTerritory"
+				},
+				{
+					"name": "SalesDetailHeader"
+				},
+				{
+					"name": "OrderYear2013"
+				},
+				{
+					"name": "AggregateByTerritoryProduct"
+				},
+				{
+					"name": "Top5Product"
+				},
+				{
+					"name": "RankTop5"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          SalesOrderID as integer,",
+				"          SalesOrderDetailID as short,",
+				"          CarrierTrackingNumber as string,",
+				"          OrderQty as short,",
+				"          ProductID as short,",
+				"          SpecialOfferID as short,",
+				"          UnitPrice as double,",
+				"          UnitPriceDiscount as double,",
+				"          LineTotal as double,",
+				"          rowguid as string,",
+				"          ModifiedDate as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> SalesOrderDetailCSV",
+				"source(output(",
+				"          SalesOrderID as integer,",
+				"          RevisionNumber as short,",
+				"          OrderDate as date,",
+				"          DueDate as date,",
+				"          ShipDate as date,",
+				"          Status as short,",
+				"          OnlineOrderFlag as boolean,",
+				"          SalesOrderNumber as string,",
+				"          PurchaseOrderNumber as string,",
+				"          AccountNumber as string,",
+				"          CustomerID as short,",
+				"          SalesPersonID as short,",
+				"          TerritoryID as short,",
+				"          BillToAddressID as short,",
+				"          ShipToAddressID as short,",
+				"          ShipMethodID as short,",
+				"          CreditCardID as short,",
+				"          CreditCardApprovalCode as string,",
+				"          CurrencyRateID as short,",
+				"          SubTotal as double,",
+				"          TaxAmt as double,",
+				"          Freight as double,",
+				"          TotalDue as double,",
+				"          Comment as string,",
+				"          rowguid as string,",
+				"          ModifiedDate as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> SalesOrderHeaderCSV",
+				"source(output(",
+				"          TerritoryID as short,",
+				"          Name as string,",
+				"          CountryRegionCode as string,",
+				"          Group as string,",
+				"          SalesYTD as double,",
+				"          SalesLastYear as double,",
+				"          CostYTD as double,",
+				"          CostLastYear as double,",
+				"          rowguid as string,",
+				"          ModifiedDate as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> SalesTerritoryCSV",
+				"SalesOrderHeaderCSV, SalesTerritoryCSV lookup(SalesOrderHeaderCSV@TerritoryID == SalesTerritoryCSV@TerritoryID,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> SalesHeaderTerritory",
+				"SalesOrderDetailCSV, SalesHeaderTerritory lookup(SalesOrderDetailCSV@SalesOrderID == SalesOrderHeaderCSV@SalesOrderID,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> SalesDetailHeader",
+				"SalesDetailHeader filter(year(OrderDate)==2013) ~> OrderYear2013",
+				"OrderYear2013 aggregate(groupBy(SalesTerritoryCSV@TerritoryID,",
+				"          Name,",
+				"          Group,",
+				"          ProductID),",
+				"     TotalOrderQty = sum(OrderQty)) ~> AggregateByTerritoryProduct",
+				"AggregateByTerritoryProduct window(over(TerritoryID),",
+				"     desc(TotalOrderQty, true),",
+				"     Rank = rowNumber()) ~> Top5Product",
+				"Top5Product filter(Rank<=5) ~> RankTop5",
+				"RankTop5 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['top-5-products-in-territories.csv'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> Top5ProductsSink"
+			]
+		}
+	}
+}

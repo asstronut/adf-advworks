@@ -1,0 +1,163 @@
+{
+	"name": "territoriessales",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "SalesTerritoryCSV",
+						"type": "DatasetReference"
+					},
+					"name": "SalesTerritoryCSV"
+				},
+				{
+					"dataset": {
+						"referenceName": "SalesOrderHeaderCSV",
+						"type": "DatasetReference"
+					},
+					"name": "SalesHeaderCSV"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "TerritoriesSalesPerformanceSink",
+						"type": "DatasetReference"
+					},
+					"name": "TerritoriesSalesPerformanceSink"
+				}
+			],
+			"transformations": [
+				{
+					"name": "lookupTerritory"
+				},
+				{
+					"name": "filterYear2012"
+				},
+				{
+					"name": "TotalSale2012"
+				},
+				{
+					"name": "filterYear2013"
+				},
+				{
+					"name": "aggregateByTerritory"
+				},
+				{
+					"name": "joinTerritory201213"
+				},
+				{
+					"name": "derivedColumn"
+				},
+				{
+					"name": "selectColumns"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          TerritoryID as short,",
+				"          Name as string,",
+				"          CountryRegionCode as string,",
+				"          Group as string,",
+				"          SalesYTD as double,",
+				"          SalesLastYear as double,",
+				"          CostYTD as double,",
+				"          CostLastYear as double,",
+				"          rowguid as string,",
+				"          ModifiedDate as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> SalesTerritoryCSV",
+				"source(output(",
+				"          SalesOrderID as integer,",
+				"          RevisionNumber as short,",
+				"          OrderDate as date,",
+				"          DueDate as date,",
+				"          ShipDate as date,",
+				"          Status as short,",
+				"          OnlineOrderFlag as boolean,",
+				"          SalesOrderNumber as string,",
+				"          PurchaseOrderNumber as string,",
+				"          AccountNumber as string,",
+				"          CustomerID as short,",
+				"          SalesPersonID as short,",
+				"          TerritoryID as short,",
+				"          BillToAddressID as short,",
+				"          ShipToAddressID as short,",
+				"          ShipMethodID as short,",
+				"          CreditCardID as short,",
+				"          CreditCardApprovalCode as string,",
+				"          CurrencyRateID as short,",
+				"          SubTotal as double,",
+				"          TaxAmt as double,",
+				"          Freight as double,",
+				"          TotalDue as double,",
+				"          Comment as string,",
+				"          rowguid as string,",
+				"          ModifiedDate as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> SalesHeaderCSV",
+				"SalesHeaderCSV, SalesTerritoryCSV lookup(SalesHeaderCSV@TerritoryID == SalesTerritoryCSV@TerritoryID,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookupTerritory",
+				"lookupTerritory filter(year(OrderDate)==2012) ~> filterYear2012",
+				"filterYear2012 aggregate(groupBy(SalesTerritoryCSV@TerritoryID),",
+				"     NumberOfOrders = count(SalesOrderID),",
+				"          AverageOrderTotal = avg(TotalDue),",
+				"          TotalSales = sum(TotalDue)) ~> TotalSale2012",
+				"lookupTerritory filter(year(OrderDate)==2013) ~> filterYear2013",
+				"filterYear2013 aggregate(groupBy(SalesTerritoryCSV@TerritoryID,",
+				"          Name,",
+				"          CountryRegionCode,",
+				"          Group,",
+				"          SalesYTD,",
+				"          SalesLastYear,",
+				"          CostYTD,",
+				"          CostLastYear),",
+				"     TotalSales = sum(TotalDue),",
+				"          NumberOfOrdersLastYear = count(SalesOrderID),",
+				"          AverageSaleLastYear = avg(TotalDue)) ~> aggregateByTerritory",
+				"aggregateByTerritory, TotalSale2012 join(aggregateByTerritory@TerritoryID == TotalSale2012@TerritoryID,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> joinTerritory201213",
+				"joinTerritory201213 derive(PctSalesGrowth = (aggregateByTerritory@TotalSales-TotalSale2012@TotalSales)/TotalSale2012@TerritoryID,",
+				"          PctAverageSaleGrowth = (AverageSaleLastYear-AverageOrderTotal)/AverageOrderTotal) ~> derivedColumn",
+				"derivedColumn select(mapColumn(",
+				"          TerritoryID = aggregateByTerritory@TerritoryID,",
+				"          Name,",
+				"          CountryRegionCode,",
+				"          Group,",
+				"          SalesYTD,",
+				"          CostYTD,",
+				"          Cost2013 = CostLastYear,",
+				"          TotalSales2012 = TotalSale2012@TotalSales,",
+				"          TotalSales2013 = aggregateByTerritory@TotalSales,",
+				"          PctSalesGrowth,",
+				"          NumberOfOrders2012 = NumberOfOrders,",
+				"          NumberOfOrders2013 = NumberOfOrdersLastYear,",
+				"          AverageSale2012 = AverageOrderTotal,",
+				"          AverageSale2013 = AverageSaleLastYear,",
+				"          PctAverageSaleGrowth",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> selectColumns",
+				"selectColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['territories-sales-performance.csv'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> TerritoriesSalesPerformanceSink"
+			]
+		}
+	}
+}
