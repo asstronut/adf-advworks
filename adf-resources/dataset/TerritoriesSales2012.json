@@ -1,5 +1,5 @@
 {
-	"name": "TotalSale2012",
+	"name": "TerritoriesSales2012",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "AzureDataLakeStorageGen2",
