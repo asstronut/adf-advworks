@@ -30,7 +30,7 @@
 	},
 	"resources": [
 		{
-			"name": "[concat(parameters('factoryName'), '/Bulk Copy From Database')]",
+			"name": "[concat(parameters('factoryName'), '/Bulk Copy and ETL Processes Pipeline')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -150,6 +150,122 @@
 								}
 							]
 						}
+					},
+					{
+						"name": "ETL Sales Person Performance",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "ForEach1",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "salesperformance",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"SalesPersonCSV": {},
+									"SalesTerritoryCSV": {},
+									"SalesOrderHeader": {},
+									"SalesPersonPerformanceSink": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "ETL Territory Sales Performance",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "ETL Sales Person Performance",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "territoriessales",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"SalesTerritoryCSV": {},
+									"SalesHeaderCSV": {},
+									"TerritoriesSalesPerformanceSink": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "ETL Top 5 Product in Territories",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "ETL Territory Sales Performance",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "top5products",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"SalesOrderDetailCSV": {},
+									"SalesOrderHeaderCSV": {},
+									"SalesTerritoryCSV": {},
+									"Top5ProductsSink": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
 					}
 				],
 				"policy": {
@@ -159,8 +275,106 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/SQLServerTableList')]",
+				"[concat(variables('factoryId'), '/dataflows/salesperformance')]",
+				"[concat(variables('factoryId'), '/dataflows/territoriessales')]",
+				"[concat(variables('factoryId'), '/dataflows/top5products')]",
 				"[concat(variables('factoryId'), '/datasets/SqlServerTableForEach')]",
 				"[concat(variables('factoryId'), '/datasets/DelimitedTextAdvWorks')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipelineTestDataFlow2')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Data flow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "territoriessales",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"SalesTerritoryCSV": {},
+									"SalesHeaderCSV": {},
+									"TerritoriesSalesPerformanceSink": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/territoriessales')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipelineTestDataFlow3')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Data flow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "top5products",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"SalesOrderDetailCSV": {},
+									"SalesOrderHeaderCSV": {},
+									"SalesTerritoryCSV": {},
+									"Top5ProductsSink": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/top5products')]"
 			]
 		},
 		{
@@ -183,14 +397,14 @@
 						"userProperties": [],
 						"typeProperties": {
 							"dataflow": {
-								"referenceName": "dataflowQ1",
+								"referenceName": "salesperformance",
 								"type": "DataFlowReference",
 								"parameters": {},
 								"datasetParameters": {
 									"SalesPersonCSV": {},
 									"SalesTerritoryCSV": {},
 									"SalesOrderHeader": {},
-									"sinkQuery1": {}
+									"SalesPersonPerformanceSink": {}
 								}
 							},
 							"staging": {},
@@ -208,7 +422,7 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/dataflows/dataflowQ1')]"
+				"[concat(variables('factoryId'), '/dataflows/salesperformance')]"
 			]
 		},
 		{
@@ -296,6 +510,79 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/SQLServerOnPrem')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SalesOrderDetailCSV')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStorageGen2",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "SalesOrderDetail.csv",
+						"fileSystem": "raw"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "SalesOrderID",
+						"type": "String"
+					},
+					{
+						"name": "SalesOrderDetailID",
+						"type": "String"
+					},
+					{
+						"name": "CarrierTrackingNumber",
+						"type": "String"
+					},
+					{
+						"name": "OrderQty",
+						"type": "String"
+					},
+					{
+						"name": "ProductID",
+						"type": "String"
+					},
+					{
+						"name": "SpecialOfferID",
+						"type": "String"
+					},
+					{
+						"name": "UnitPrice",
+						"type": "String"
+					},
+					{
+						"name": "UnitPriceDiscount",
+						"type": "String"
+					},
+					{
+						"name": "LineTotal",
+						"type": "String"
+					},
+					{
+						"name": "rowguid",
+						"type": "String"
+					},
+					{
+						"name": "ModifiedDate",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorageGen2')]"
 			]
 		},
 		{
@@ -497,7 +784,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/SalesPersonPerformance')]",
+			"name": "[concat(parameters('factoryName'), '/SalesPersonPerformanceSink')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -510,7 +797,6 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobFSLocation",
-						"fileName": "SalesPersonPerformance.csv",
 						"fileSystem": "transformed"
 					},
 					"columnDelimiter": ",",
@@ -629,6 +915,87 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/TerritoriesSales2012')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStorageGen2",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileSystem": "transformed"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorageGen2')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/TerritoriesSalesPerformanceSink')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStorageGen2",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileSystem": "transformed"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorageGen2')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Top5ProductsSink')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureDataLakeStorageGen2",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileSystem": "transformed"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureDataLakeStorageGen2')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/AzureDataLakeStorageGen2')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -698,7 +1065,7 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/dataflowQ1')]",
+			"name": "[concat(parameters('factoryName'), '/salesperformance')]",
 			"type": "Microsoft.DataFactory/factories/dataflows",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -730,10 +1097,10 @@
 					"sinks": [
 						{
 							"dataset": {
-								"referenceName": "SalesPersonPerformance",
+								"referenceName": "SalesPersonPerformanceSink",
 								"type": "DatasetReference"
 							},
-							"name": "sinkQuery1"
+							"name": "SalesPersonPerformanceSink"
 						}
 					],
 					"transformations": [
@@ -851,11 +1218,13 @@
 						"     skipDuplicateMapOutputs: true) ~> selectColumns",
 						"selectColumns sink(allowSchemaDrift: true,",
 						"     validateSchema: false,",
+						"     partitionFileNames:['sales-person-performance.csv'],",
 						"     umask: 0022,",
 						"     preCommands: [],",
 						"     postCommands: [],",
 						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true) ~> sinkQuery1"
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> SalesPersonPerformanceSink"
 					]
 				}
 			},
@@ -863,7 +1232,336 @@
 				"[concat(variables('factoryId'), '/datasets/SalesPersonCSV')]",
 				"[concat(variables('factoryId'), '/datasets/SalesTerritoryCSV')]",
 				"[concat(variables('factoryId'), '/datasets/SalesOrderHeaderCSV')]",
-				"[concat(variables('factoryId'), '/datasets/SalesPersonPerformance')]"
+				"[concat(variables('factoryId'), '/datasets/SalesPersonPerformanceSink')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/territoriessales')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "SalesTerritoryCSV",
+								"type": "DatasetReference"
+							},
+							"name": "SalesTerritoryCSV"
+						},
+						{
+							"dataset": {
+								"referenceName": "SalesOrderHeaderCSV",
+								"type": "DatasetReference"
+							},
+							"name": "SalesHeaderCSV"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "TerritoriesSalesPerformanceSink",
+								"type": "DatasetReference"
+							},
+							"name": "TerritoriesSalesPerformanceSink"
+						}
+					],
+					"transformations": [
+						{
+							"name": "lookupTerritory"
+						},
+						{
+							"name": "filterYear2012"
+						},
+						{
+							"name": "TotalSale2012"
+						},
+						{
+							"name": "filterYear2013"
+						},
+						{
+							"name": "aggregateByTerritory"
+						},
+						{
+							"name": "joinTerritory201213"
+						},
+						{
+							"name": "derivedColumn"
+						},
+						{
+							"name": "selectColumns"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          TerritoryID as short,",
+						"          Name as string,",
+						"          CountryRegionCode as string,",
+						"          Group as string,",
+						"          SalesYTD as double,",
+						"          SalesLastYear as double,",
+						"          CostYTD as double,",
+						"          CostLastYear as double,",
+						"          rowguid as string,",
+						"          ModifiedDate as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> SalesTerritoryCSV",
+						"source(output(",
+						"          SalesOrderID as integer,",
+						"          RevisionNumber as short,",
+						"          OrderDate as date,",
+						"          DueDate as date,",
+						"          ShipDate as date,",
+						"          Status as short,",
+						"          OnlineOrderFlag as boolean,",
+						"          SalesOrderNumber as string,",
+						"          PurchaseOrderNumber as string,",
+						"          AccountNumber as string,",
+						"          CustomerID as short,",
+						"          SalesPersonID as short,",
+						"          TerritoryID as short,",
+						"          BillToAddressID as short,",
+						"          ShipToAddressID as short,",
+						"          ShipMethodID as short,",
+						"          CreditCardID as short,",
+						"          CreditCardApprovalCode as string,",
+						"          CurrencyRateID as short,",
+						"          SubTotal as double,",
+						"          TaxAmt as double,",
+						"          Freight as double,",
+						"          TotalDue as double,",
+						"          Comment as string,",
+						"          rowguid as string,",
+						"          ModifiedDate as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> SalesHeaderCSV",
+						"SalesHeaderCSV, SalesTerritoryCSV lookup(SalesHeaderCSV@TerritoryID == SalesTerritoryCSV@TerritoryID,",
+						"     multiple: false,",
+						"     pickup: 'any',",
+						"     broadcast: 'auto')~> lookupTerritory",
+						"lookupTerritory filter(year(OrderDate)==2012) ~> filterYear2012",
+						"filterYear2012 aggregate(groupBy(SalesTerritoryCSV@TerritoryID),",
+						"     NumberOfOrders = count(SalesOrderID),",
+						"          AverageOrderTotal = avg(TotalDue),",
+						"          TotalSales = sum(TotalDue)) ~> TotalSale2012",
+						"lookupTerritory filter(year(OrderDate)==2013) ~> filterYear2013",
+						"filterYear2013 aggregate(groupBy(SalesTerritoryCSV@TerritoryID,",
+						"          Name,",
+						"          CountryRegionCode,",
+						"          Group,",
+						"          SalesYTD,",
+						"          SalesLastYear,",
+						"          CostYTD,",
+						"          CostLastYear),",
+						"     TotalSales = sum(TotalDue),",
+						"          NumberOfOrdersLastYear = count(SalesOrderID),",
+						"          AverageSaleLastYear = avg(TotalDue)) ~> aggregateByTerritory",
+						"aggregateByTerritory, TotalSale2012 join(aggregateByTerritory@TerritoryID == TotalSale2012@TerritoryID,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> joinTerritory201213",
+						"joinTerritory201213 derive(PctSalesGrowth = (aggregateByTerritory@TotalSales-TotalSale2012@TotalSales)/TotalSale2012@TerritoryID,",
+						"          PctAverageSaleGrowth = (AverageSaleLastYear-AverageOrderTotal)/AverageOrderTotal) ~> derivedColumn",
+						"derivedColumn select(mapColumn(",
+						"          TerritoryID = aggregateByTerritory@TerritoryID,",
+						"          Name,",
+						"          CountryRegionCode,",
+						"          Group,",
+						"          SalesYTD,",
+						"          CostYTD,",
+						"          Cost2013 = CostLastYear,",
+						"          TotalSales2012 = TotalSale2012@TotalSales,",
+						"          TotalSales2013 = aggregateByTerritory@TotalSales,",
+						"          PctSalesGrowth,",
+						"          NumberOfOrders2012 = NumberOfOrders,",
+						"          NumberOfOrders2013 = NumberOfOrdersLastYear,",
+						"          AverageSale2012 = AverageOrderTotal,",
+						"          AverageSale2013 = AverageSaleLastYear,",
+						"          PctAverageSaleGrowth",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> selectColumns",
+						"selectColumns sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     partitionFileNames:['territories-sales-performance.csv'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> TerritoriesSalesPerformanceSink"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/SalesTerritoryCSV')]",
+				"[concat(variables('factoryId'), '/datasets/SalesOrderHeaderCSV')]",
+				"[concat(variables('factoryId'), '/datasets/TerritoriesSalesPerformanceSink')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/top5products')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "SalesOrderDetailCSV",
+								"type": "DatasetReference"
+							},
+							"name": "SalesOrderDetailCSV"
+						},
+						{
+							"dataset": {
+								"referenceName": "SalesOrderHeaderCSV",
+								"type": "DatasetReference"
+							},
+							"name": "SalesOrderHeaderCSV"
+						},
+						{
+							"dataset": {
+								"referenceName": "SalesTerritoryCSV",
+								"type": "DatasetReference"
+							},
+							"name": "SalesTerritoryCSV"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "Top5ProductsSink",
+								"type": "DatasetReference"
+							},
+							"name": "Top5ProductsSink"
+						}
+					],
+					"transformations": [
+						{
+							"name": "SalesHeaderTerritory"
+						},
+						{
+							"name": "SalesDetailHeader"
+						},
+						{
+							"name": "OrderYear2013"
+						},
+						{
+							"name": "AggregateByTerritoryProduct"
+						},
+						{
+							"name": "Top5Product"
+						},
+						{
+							"name": "RankTop5"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          SalesOrderID as integer,",
+						"          SalesOrderDetailID as short,",
+						"          CarrierTrackingNumber as string,",
+						"          OrderQty as short,",
+						"          ProductID as short,",
+						"          SpecialOfferID as short,",
+						"          UnitPrice as double,",
+						"          UnitPriceDiscount as double,",
+						"          LineTotal as double,",
+						"          rowguid as string,",
+						"          ModifiedDate as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> SalesOrderDetailCSV",
+						"source(output(",
+						"          SalesOrderID as integer,",
+						"          RevisionNumber as short,",
+						"          OrderDate as date,",
+						"          DueDate as date,",
+						"          ShipDate as date,",
+						"          Status as short,",
+						"          OnlineOrderFlag as boolean,",
+						"          SalesOrderNumber as string,",
+						"          PurchaseOrderNumber as string,",
+						"          AccountNumber as string,",
+						"          CustomerID as short,",
+						"          SalesPersonID as short,",
+						"          TerritoryID as short,",
+						"          BillToAddressID as short,",
+						"          ShipToAddressID as short,",
+						"          ShipMethodID as short,",
+						"          CreditCardID as short,",
+						"          CreditCardApprovalCode as string,",
+						"          CurrencyRateID as short,",
+						"          SubTotal as double,",
+						"          TaxAmt as double,",
+						"          Freight as double,",
+						"          TotalDue as double,",
+						"          Comment as string,",
+						"          rowguid as string,",
+						"          ModifiedDate as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> SalesOrderHeaderCSV",
+						"source(output(",
+						"          TerritoryID as short,",
+						"          Name as string,",
+						"          CountryRegionCode as string,",
+						"          Group as string,",
+						"          SalesYTD as double,",
+						"          SalesLastYear as double,",
+						"          CostYTD as double,",
+						"          CostLastYear as double,",
+						"          rowguid as string,",
+						"          ModifiedDate as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> SalesTerritoryCSV",
+						"SalesOrderHeaderCSV, SalesTerritoryCSV lookup(SalesOrderHeaderCSV@TerritoryID == SalesTerritoryCSV@TerritoryID,",
+						"     multiple: false,",
+						"     pickup: 'any',",
+						"     broadcast: 'auto')~> SalesHeaderTerritory",
+						"SalesOrderDetailCSV, SalesHeaderTerritory lookup(SalesOrderDetailCSV@SalesOrderID == SalesOrderHeaderCSV@SalesOrderID,",
+						"     multiple: false,",
+						"     pickup: 'any',",
+						"     broadcast: 'auto')~> SalesDetailHeader",
+						"SalesDetailHeader filter(year(OrderDate)==2013) ~> OrderYear2013",
+						"OrderYear2013 aggregate(groupBy(SalesTerritoryCSV@TerritoryID,",
+						"          Name,",
+						"          Group,",
+						"          ProductID),",
+						"     TotalOrderQty = sum(OrderQty)) ~> AggregateByTerritoryProduct",
+						"AggregateByTerritoryProduct window(over(TerritoryID),",
+						"     desc(TotalOrderQty, true),",
+						"     Rank = rowNumber()) ~> Top5Product",
+						"Top5Product filter(Rank<=5) ~> RankTop5",
+						"RankTop5 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     partitionFileNames:['top-5-products-in-territories.csv'],",
+						"     umask: 0022,",
+						"     preCommands: [],",
+						"     postCommands: [],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     partitionBy('hash', 1)) ~> Top5ProductsSink"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/SalesOrderDetailCSV')]",
+				"[concat(variables('factoryId'), '/datasets/SalesOrderHeaderCSV')]",
+				"[concat(variables('factoryId'), '/datasets/SalesTerritoryCSV')]",
+				"[concat(variables('factoryId'), '/datasets/Top5ProductsSink')]"
 			]
 		}
 	]
