@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "dataflowQ2",
+						"referenceName": "Sale201213",
 						"type": "DataFlowReference"
 					},
 					"compute": {

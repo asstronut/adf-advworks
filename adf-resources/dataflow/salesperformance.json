@@ -1,5 +1,5 @@
 {
-	"name": "dataflowQ1",
+	"name": "salesperformance",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
@@ -32,7 +32,7 @@
 						"referenceName": "SalesPersonPerformance",
 						"type": "DatasetReference"
 					},
-					"name": "sinkQuery1"
+					"name": "SalesPersonPerformanceSink"
 				}
 			],
 			"transformations": [
@@ -150,11 +150,13 @@
 				"     skipDuplicateMapOutputs: true) ~> selectColumns",
 				"selectColumns sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
+				"     partitionFileNames:['SalesPersonPerformance.csv'],",
 				"     umask: 0022,",
 				"     preCommands: [],",
 				"     postCommands: [],",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> sinkQuery1"
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> SalesPersonPerformanceSink"
 			]
 		}
 	}

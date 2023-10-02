@@ -1,5 +1,5 @@
 {
-	"name": "pipelineTestDataflow1",
+	"name": "pipelineTestDataFlow3",
 	"properties": {
 		"activities": [
 			{
@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "salesperformance",
+						"referenceName": "top5product",
 						"type": "DataFlowReference"
 					},
 					"compute": {

@@ -1,5 +1,5 @@
 {
-	"name": "dataflowQ2",
+	"name": "Sale201213",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
@@ -22,7 +22,7 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "Sale201213",
+						"referenceName": "Sale201213Sink",
 						"type": "DatasetReference"
 					},
 					"name": "sinkSale201213"

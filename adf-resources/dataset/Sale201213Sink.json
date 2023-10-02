@@ -1,5 +1,5 @@
 {
-	"name": "Sale201213",
+	"name": "Sale201213Sink",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "AzureDataLakeStorageGen2",
