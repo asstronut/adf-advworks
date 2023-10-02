@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "top5product",
+						"referenceName": "top5products",
 						"type": "DataFlowReference"
 					},
 					"compute": {

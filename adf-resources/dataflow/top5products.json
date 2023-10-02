@@ -1,5 +1,5 @@
 {
-	"name": "top5product",
+	"name": "top5products",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
@@ -29,10 +29,10 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "Top5ProductSink",
+						"referenceName": "Top5ProductsSink",
 						"type": "DatasetReference"
 					},
-					"name": "SinkTop5Product"
+					"name": "Top5ProductsSink"
 				}
 			],
 			"transformations": [
@@ -138,13 +138,13 @@
 				"Top5Product filter(Rank<=5) ~> RankTop5",
 				"RankTop5 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     partitionFileNames:['top-5-product-per-territory.csv'],",
+				"     partitionFileNames:['top-5-products-in-territories.csv'],",
 				"     umask: 0022,",
 				"     preCommands: [],",
 				"     postCommands: [],",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     partitionBy('hash', 1)) ~> SinkTop5Product"
+				"     partitionBy('hash', 1)) ~> Top5ProductsSink"
 			]
 		}
 	}

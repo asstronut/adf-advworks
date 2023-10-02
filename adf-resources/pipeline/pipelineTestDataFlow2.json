@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "Sale201213",
+						"referenceName": "territoriessales",
 						"type": "DataFlowReference"
 					},
 					"compute": {

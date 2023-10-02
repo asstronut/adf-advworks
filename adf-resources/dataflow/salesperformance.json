@@ -29,7 +29,7 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "SalesPersonPerformance",
+						"referenceName": "SalesPersonPerformanceSink",
 						"type": "DatasetReference"
 					},
 					"name": "SalesPersonPerformanceSink"
@@ -150,7 +150,7 @@
 				"     skipDuplicateMapOutputs: true) ~> selectColumns",
 				"selectColumns sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     partitionFileNames:['SalesPersonPerformance.csv'],",
+				"     partitionFileNames:['sales-person-performance.csv'],",
 				"     umask: 0022,",
 				"     preCommands: [],",
 				"     postCommands: [],",

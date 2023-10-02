@@ -1,5 +1,5 @@
 {
-	"name": "sale201213",
+	"name": "territoriessales",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
@@ -22,10 +22,10 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "Sale201213Sink",
+						"referenceName": "TerritoriesSalesPerformanceSink",
 						"type": "DatasetReference"
 					},
-					"name": "sinkSale201213"
+					"name": "TerritoriesSalesPerformanceSink"
 				}
 			],
 			"transformations": [
@@ -150,13 +150,13 @@
 				"     skipDuplicateMapOutputs: true) ~> selectColumns",
 				"selectColumns sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     partitionFileNames:['sale-2012-2013.csv'],",
+				"     partitionFileNames:['territories-sales-performance.csv'],",
 				"     umask: 0022,",
 				"     preCommands: [],",
 				"     postCommands: [],",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     partitionBy('hash', 1)) ~> sinkSale201213"
+				"     partitionBy('hash', 1)) ~> TerritoriesSalesPerformanceSink"
 			]
 		}
 	}

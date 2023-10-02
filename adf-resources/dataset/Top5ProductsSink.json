@@ -1,5 +1,5 @@
 {
-	"name": "Top5ProductSink",
+	"name": "Top5ProductsSink",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "AzureDataLakeStorageGen2",
