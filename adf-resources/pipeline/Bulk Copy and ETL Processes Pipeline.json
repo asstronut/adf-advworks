@@ -47,7 +47,7 @@
 					},
 					"activities": [
 						{
-							"name": "Export Data",
+							"name": "Copy Data",
 							"type": "Copy",
 							"dependsOn": [],
 							"policy": {
